@@ -363,7 +363,7 @@ public class ContextLoader {
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext
 	 */
 	protected Class<?> determineContextClass(ServletContext servletContext) {
-		// 读取用户自定义配置：获得参数 contextClass 的值
+		// 获得参数 contextClass 的值
 		/*
 		 * 读取用户自定义配置，比如：
 		 * <context-param>
