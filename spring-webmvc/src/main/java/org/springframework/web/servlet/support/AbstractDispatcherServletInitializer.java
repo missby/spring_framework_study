@@ -73,14 +73,19 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	 * #customizeRegistration(ServletRegistration.Dynamic)} or
 	 * {@link #createDispatcherServlet(WebApplicationContext)}.
 	 * @param servletContext the context to register the servlet against
+	 *
+	 * 无 web.xml 前提下创建 DispatcherServlet 的关键代码
 	 */
 	protected void registerDispatcherServlet(ServletContext servletContext) {
+		//// 获得 Servlet 名
 		String servletName = getServletName();
 		Assert.hasLength(servletName, "getServletName() must not return null or empty");
-
+		//<1> 创建 WebApplicationContext 对象
+		//该方法由子类 AbstractAnnotationConfigDispatcherServletInitializer 重写，并且创建的 WebApplicationContext 的子类 AnnotationConfigWebApplicationContext 对象。
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
-
+		//<2> 处，调用 #createDispatcherServlet(WebApplicationContext servletAppContext) 方法，创建 FrameworkServlet 对象。
+		//使用构造方法创建
 		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
 		Assert.notNull(dispatcherServlet, "createDispatcherServlet(WebApplicationContext) must not return null");
 		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
@@ -94,7 +99,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		registration.setLoadOnStartup(1);
 		registration.addMapping(getServletMappings());
 		registration.setAsyncSupported(isAsyncSupported());
-
+		// <3> 注册过滤器
 		Filter[] filters = getServletFilters();
 		if (!ObjectUtils.isEmpty(filters)) {
 			for (Filter filter : filters) {
