@@ -52,6 +52,9 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.web.servlet.handler.AbstractHandlerMapping
  * @see org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping
  * @see org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
+ * 处理器匹配接口，根据请求( handler )获得其的处理器( handler )和拦截器们( HandlerInterceptor 数组 )
+ *
+ * 内部维护了一些 <访问路径, 处理器> 映射，负责为请求找到合适的处理器
  */
 public interface HandlerMapping {
 
@@ -143,6 +146,8 @@ public interface HandlerMapping {
 	 * @return a HandlerExecutionChain instance containing handler object and
 	 * any interceptors, or {@code null} if no mapping found
 	 * @throws Exception if there is an internal error
+	 * 获得请求对应的处理器和拦截器们
+	 * 返回：包含处理器( handler )和拦截器们( HandlerInterceptor 数组 )。
 	 */
 	@Nullable
 	HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception;

@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.web.servlet.view.InternalResourceViewResolver
  * @see org.springframework.web.servlet.view.ResourceBundleViewResolver
  * @see org.springframework.web.servlet.view.XmlViewResolver
+ * 实体解析器接口，根据视图名和国际化，获得最终的视图 View 对象。
  */
 public interface ViewResolver {
 
