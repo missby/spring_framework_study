@@ -70,7 +70,9 @@ public class HandlerExecutionChain {
 		if (handler instanceof HandlerExecutionChain) {
 			HandlerExecutionChain originalChain = (HandlerExecutionChain) handler;
 			this.handler = originalChain.getHandler();
+			//初始化到interceptorList
 			this.interceptorList = new ArrayList<>();
+			//将前者添加到后者中
 			CollectionUtils.mergeArrayIntoCollection(originalChain.getInterceptors(), this.interceptorList);
 			CollectionUtils.mergeArrayIntoCollection(interceptors, this.interceptorList);
 		}
@@ -88,7 +90,13 @@ public class HandlerExecutionChain {
 		return this.handler;
 	}
 
+	/**
+	 * 添加拦截器到 interceptorList 中
+	 * @param interceptor
+	 */
 	public void addInterceptor(HandlerInterceptor interceptor) {
+
+		//首先，会调用 #initInterceptorList() 方法，保证 interceptorList 已初始化
 		initInterceptorList().add(interceptor);
 	}
 
@@ -102,11 +110,17 @@ public class HandlerExecutionChain {
 		}
 	}
 
+	/**
+	 * 初始化interceptorList
+	 * @return
+	 */
 	private List<HandlerInterceptor> initInterceptorList() {
+		//// 如果 interceptorList 为空，则初始化为 ArrayList
 		if (this.interceptorList == null) {
 			this.interceptorList = new ArrayList<>();
 			if (this.interceptors != null) {
 				// An interceptor array specified through the constructor
+				//将interceptors添加到interceptorList
 				CollectionUtils.mergeArrayIntoCollection(this.interceptors, this.interceptorList);
 			}
 		}
@@ -117,9 +131,11 @@ public class HandlerExecutionChain {
 	/**
 	 * Return the array of interceptors to apply (in the given order).
 	 * @return the array of HandlerInterceptors instances (may be {@code null})
+	 * 获得 interceptors 数组
 	 */
 	@Nullable
 	public HandlerInterceptor[] getInterceptors() {
+		// 将 interceptorList 初始化到 interceptors 中
 		if (this.interceptors == null && this.interceptorList != null) {
 			this.interceptors = this.interceptorList.toArray(new HandlerInterceptor[0]);
 		}
@@ -135,14 +151,22 @@ public class HandlerExecutionChain {
 	 * 前置处理程序
 	 */
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// <1> 获得拦截器数组
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// <2> 遍历拦截器数组
 			for (int i = 0; i < interceptors.length; i++) {
 				HandlerInterceptor interceptor = interceptors[i];
+				// <3> 前置处理
 				if (!interceptor.preHandle(request, response, this.handler)) {
+					// <3.1> 触发已完成处理
+					//注意，此处不是触发当前拦截器的已完成逻辑，而是触发 [0, interceptorIndex)
+					// 这几个拦截器已完成的逻辑( 不包括当前这个拦截器 )，并且是按照倒序执行的。
 					triggerAfterCompletion(request, response, null);
+					// 返回 false ，前置处理失败
 					return false;
 				}
+				// <3.2> 标记 interceptorIndex 位置
 				this.interceptorIndex = i;
 			}
 		}
@@ -151,14 +175,17 @@ public class HandlerExecutionChain {
 
 	/**
 	 * Apply postHandle methods of registered interceptors.
+	 * ，应用拦截器的后置处理
 	 */
 	void applyPostHandle(HttpServletRequest request, HttpServletResponse response, @Nullable ModelAndView mv)
 			throws Exception {
-
+		// 获得拦截器数组
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// 遍历拦截器数组 TODO 倒叙
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				HandlerInterceptor interceptor = interceptors[i];
+				// 后置处理
 				interceptor.postHandle(request, response, this.handler, mv);
 			}
 		}
@@ -168,18 +195,22 @@ public class HandlerExecutionChain {
 	 * Trigger afterCompletion callbacks on the mapped HandlerInterceptors.
 	 * Will just invoke afterCompletion for all interceptors whose preHandle invocation
 	 * has successfully completed and returned true.
+	 * 触发拦截器的已完成处理。
 	 */
 	void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex)
 			throws Exception {
-
+		// 获得拦截器数组
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// 遍历拦截器数组,TODO 倒叙
 			for (int i = this.interceptorIndex; i >= 0; i--) {
 				HandlerInterceptor interceptor = interceptors[i];
 				try {
+					// 已完成处理
 					interceptor.afterCompletion(request, response, this.handler, ex);
 				}
 				catch (Throwable ex2) {
+					//打印日志
 					logger.error("HandlerInterceptor.afterCompletion threw exception", ex2);
 				}
 			}
