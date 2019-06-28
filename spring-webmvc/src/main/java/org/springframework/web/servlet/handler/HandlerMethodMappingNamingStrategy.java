@@ -37,6 +37,10 @@ import org.springframework.web.method.HandlerMethod;
  * @author Rossen Stoyanchev
  * @since 4.1
  * @param <T> the mapping type
+ *           获得 Mapping 的名字。这样，我们就可以根据 Mapping 的名字，获得 Handler 。
+ *           org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMethodMappingNamingStrategy
+ *           实现该接口
+ *
  */
 @FunctionalInterface
 public interface HandlerMethodMappingNamingStrategy<T> {
